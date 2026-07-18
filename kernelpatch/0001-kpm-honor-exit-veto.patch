@@ -1,0 +1,40 @@
+From: BrickGuard contributors
+Subject: [PATCH] kpm: honor module exit veto before freeing executable memory
+
+KPM exit handlers can report that teardown is unsafe.  Keep the module on the
+list and retain its executable allocation when that happens.  Export a feature
+word so KPMs which rely on this contract fail relocation on unpatched loaders.
+
+This is intentionally a small loader contract patch.  Apply it to the
+KernelPatch tree used to patch the target boot image.
+
+diff --git a/kernel/patch/module/module.c b/kernel/patch/module/module.c
+--- a/kernel/patch/module/module.c
++++ b/kernel/patch/module/module.c
+@@ -393,6 +393,9 @@ static int elf_header_check(struct load_info *info)
+ }
+ 
+ struct module modules = { 0 };
++int kpm_exit_veto_supported = 1;
++KP_EXPORT_SYMBOL(kpm_exit_veto_supported);
++
+ static spinlock_t module_lock;
+ 
+ long load_module(const void *data, int len, const char *args, const char *event, void *__user reserved)
+@@ -466,9 +469,13 @@ long unload_module(const char *name, void *__user reserved)
+         rc = -ENOENT;
+         goto out;
+     }
+-    list_del(&mod->list);
+     rc = (*mod->exit)(reserved);
++    if (rc) {
++        logkfi("name: %s, unload vetoed rc: %d\n", name, rc);
++        goto out;
++    }
+ 
++    list_del(&mod->list);
+     if (mod->args) kvfree(mod->args);
+     if (mod->ctl_args) kvfree(mod->ctl_args);
+ 
+-- 
+2.43.0
