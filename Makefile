@@ -28,6 +28,7 @@ KPM_INCLUDES := \
 	-I$(KDIR)/arch/arm64/include \
 	-I$(KOUT)/arch/arm64/include/generated \
 	-I$(KDIR)/include \
+	-I$(KOUT)/include \
 	-I$(KDIR)/arch/arm64/include/uapi \
 	-I$(KOUT)/arch/arm64/include/generated/uapi \
 	-I$(KDIR)/include/uapi \
