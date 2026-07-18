@@ -4,6 +4,7 @@ HOST_CC ?= cc
 TARGET_COMPILE ?= aarch64-linux-gnu-
 CLI_CC ?= $(TARGET_COMPILE)gcc
 KPM_CC ?= $(TARGET_COMPILE)gcc
+KPM_LD ?= $(KPM_CC)
 KPM_READELF ?= $(TARGET_COMPILE)readelf
 KPM_NM ?= $(TARGET_COMPILE)nm
 KDIR ?=
@@ -120,7 +121,7 @@ $(BUILD)/policy_kpm.o: src/policy.c include/brickguard_policy.h | \
 	$(KPM_CC) $(KPM_CFLAGS) -c $< -o $@
 
 $(KPM_OUT): $(KPM_OBJS) $(KPM_VALIDATE)
-	$(KPM_CC) -r -o $@ $(KPM_OBJS)
+	$(KPM_LD) -r -o $@ $(KPM_OBJS)
 
 kpm: $(KPM_OUT)
 	$(KPM_READELF) -h $(KPM_OUT) | sed -n '1,18p'
